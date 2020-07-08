@@ -1,38 +1,38 @@
 require("dotenv").config();
-import github from "./github";
-import calendar from "./calendar";
 import fs from "fs";
 import path from "path";
+import moment from "moment";
 
-export const now = new Date();
-export const today = new Date(
-  now.getFullYear(),
-  now.getMonth(),
-  now.getDate(),
-  6,
-  0,
-  0
-);
-export const todayEnd = new Date(
-  now.getFullYear(),
-  now.getMonth(),
-  now.getDate(),
-  22,
-  0,
-  0
-);
+import { main as mainGithub } from "./github";
+import { main as mainCalendar, next as nextCalendar } from "./calendar";
+
+export const now = moment();
+
+export const todayStart = now.clone().startOf("day");
+export const todayEnd = now.clone().endOf("day");
+export const tomorrowStart = now.clone().add(1, "day").startOf("day");
+export const tomorrowEnd = now.clone().add(1, "day").endOf("day");
+
+console.log(todayStart.toISOString());
+
+export const rnd = (els: Array<any>) =>
+  els[Math.floor(Math.random() * els.length)];
 
 async function main() {
-  const msg = await (await Promise.all([calendar(), github()])).join("\n\n");
-  process.stdout.write(msg);
-
-  const outFile = path.join(
-    "out",
-    `${now.getFullYear()}-${(1 + now.getMonth())
-      .toString()
-      .padStart(2, "0")}-${now.getDate().toString().padStart(2, "0")}.txt`
+  const msgToday = (await Promise.all([mainCalendar(), mainGithub()])).join(
+    "\n"
   );
 
+  const msgNext = (await Promise.all([nextCalendar()])).join("\n");
+
+  const msg = ["# Today\n\n", msgToday, "\n\n\n", "# Next\n\n", msgNext].join(
+    ""
+  );
+  process.stdout.write("\n\n");
+  process.stdout.write(msg);
+  process.stdout.write("\n\n");
+
+  const outFile = path.join("out", `${now.format("YYYY-MM-DD")}.md`);
   fs.writeFileSync(outFile, msg);
 }
 

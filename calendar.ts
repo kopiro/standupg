@@ -1,8 +1,8 @@
 import fastify from "fastify";
-import { google } from "googleapis";
+import { google, calendar_v3 } from "googleapis";
 import fs from "fs";
 import path from "path";
-import { today, todayEnd } from ".";
+import { todayStart, todayEnd, tomorrowStart, tomorrowEnd } from ".";
 
 const PORT = 8080;
 const ROUTE = "/oauth_redirect";
@@ -38,9 +38,39 @@ if (!fs.existsSync(secretFile)) {
   console.log(`Please configure Google Calendar integration: ${url}`);
 }
 
-export default async function () {
+const getDescription = ({ description }: calendar_v3.Schema$Event) => {
+  return (
+    description &&
+    description.length < 200 &&
+    `(${description.replace(/- /g, "")})` // Remove any bullet point
+  );
+};
+
+const attendeesAliases = process.env.CALENDAR_ALIASES
+  ? JSON.parse(process.env.CALENDAR_ALIASES)
+  : {};
+
+const getAttendees = ({ attendees }: calendar_v3.Schema$Event) => {
+  const filteredAttendees = (attendees || [])
+    .filter((att) => att.responseStatus === "accepted")
+    .filter((att) => att.email !== process.env.GOOGLE_EMAIL);
+  return (
+    filteredAttendees &&
+    filteredAttendees.length > 0 &&
+    filteredAttendees.length <=
+      Number(process.env.CALENDAR_MAX_ATTENDEES_SHOWN) &&
+    `(with ${filteredAttendees
+      .map((att) => {
+        const username = att.email?.split("@")[0]!;
+        return attendeesAliases[username] || username;
+      })
+      .join(", ")})`
+  );
+};
+
+const getCalendar = () => {
   if (!fs.existsSync(secretFile)) {
-    return "";
+    return null;
   }
 
   const tokens = JSON.parse(fs.readFileSync(secretFile, "utf8"));
@@ -52,17 +82,11 @@ export default async function () {
   );
   auth.setCredentials(tokens);
 
-  const calendar = google.calendar({ version: "v3", auth });
-  const { data } = await calendar.events.list({
-    calendarId: "primary",
-    timeMin: today.toISOString(),
-    timeMax: todayEnd.toISOString(),
-    maxResults: 100,
-    singleEvents: true,
-    orderBy: "startTime",
-  });
+  return google.calendar({ version: "v3", auth });
+};
 
-  const list = (data.items || [])
+const eventsBuilder = (items: calendar_v3.Schema$Event[] = []) => {
+  return items
     .filter((event) => event.status === "confirmed")
     .filter(
       (event) =>
@@ -71,23 +95,45 @@ export default async function () {
     )
     .filter((event) => !/standup/i.test(event.summary!))
     .map((event) => {
-      const attendees = (event.attendees || [])
-        .filter((att) => att.responseStatus === "accepted")
-        .filter((att) => att.email !== process.env.GOOGLE_EMAIL);
-
-      return [
-        `- ${event.summary}`,
-        attendees.length > 0 &&
-          attendees.length <=
-            Number(process.env.CALENDAR_MAX_ATTENDEES_SHOWN) &&
-          ` (with ${attendees
-            .map((att) => att.email?.split("@")[0])
-            .join(", ")})`,
-      ]
+      return [`- ${event.summary}`, getDescription(event), getAttendees(event)]
         .filter(Boolean)
-        .join("");
+        .join(" ");
     })
     .join("\n");
+};
 
-  return `*Meetings:*\n${list}`;
+export async function main() {
+  const calendar = getCalendar();
+  if (!calendar) {
+    return "";
+  }
+
+  const { data } = await calendar.events.list({
+    calendarId: "primary",
+    timeMin: todayStart.toISOString(),
+    timeMax: todayEnd.toISOString(),
+    maxResults: 100,
+    singleEvents: true,
+    orderBy: "startTime",
+  });
+
+  return `*Meetings:*\n${eventsBuilder(data.items)}`;
+}
+
+export async function next() {
+  const calendar = getCalendar();
+  if (!calendar) {
+    return "";
+  }
+
+  const { data } = await calendar.events.list({
+    calendarId: "primary",
+    timeMin: tomorrowStart.toISOString(),
+    timeMax: tomorrowEnd.toISOString(),
+    maxResults: 100,
+    singleEvents: true,
+    orderBy: "startTime",
+  });
+
+  return eventsBuilder(data.items);
 }

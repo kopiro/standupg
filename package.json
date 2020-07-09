@@ -4,7 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node index"
+    "start": "ts-node index",
+    "postinstall": "mkdir ~/.standupg && cp .env.example ~/.standupg/config"
   },
   "bin": {
     "standupg": "cli.sh"

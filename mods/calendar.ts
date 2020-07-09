@@ -2,7 +2,7 @@ import fastify from "fastify";
 import { google, calendar_v3 } from "googleapis";
 import fs from "fs";
 import path from "path";
-import { todayStart, todayEnd, tomorrowStart, tomorrowEnd } from ".";
+import { todayStart, todayEnd, tomorrowStart, tomorrowEnd } from "../index";
 
 const PORT = 8080;
 const ROUTE = "/oauth_redirect";
@@ -35,7 +35,9 @@ if (!fs.existsSync(secretFile)) {
     access_type: "offline",
     scope: scopes,
   });
-  console.log(`Please configure Google Calendar integration: ${url}`);
+  console.log(
+    `Please configure Google Calendar integration by visiting this URL, then restart stangupg: ${url}`
+  );
 }
 
 const getDescription = ({ description }: calendar_v3.Schema$Event) => {
@@ -46,8 +48,8 @@ const getDescription = ({ description }: calendar_v3.Schema$Event) => {
   );
 };
 
-const attendeesAliases = process.env.CALENDAR_ALIASES
-  ? JSON.parse(process.env.CALENDAR_ALIASES)
+const attendeesAliases = process.env.CALENDAR_ATTENDEES_ALIAS
+  ? JSON.parse(process.env.CALENDAR_ATTENDEES_ALIAS)
   : {};
 
 const getAttendees = ({ attendees }: calendar_v3.Schema$Event) => {
@@ -58,7 +60,7 @@ const getAttendees = ({ attendees }: calendar_v3.Schema$Event) => {
     filteredAttendees &&
     filteredAttendees.length > 0 &&
     filteredAttendees.length <=
-      Number(process.env.CALENDAR_MAX_ATTENDEES_SHOWN) &&
+      Number(process.env.CALENDAR_MAX_ATTENDEES_SHOWN || 3) &&
     `(with ${filteredAttendees
       .map((att) => {
         const username = att.email?.split("@")[0]!;

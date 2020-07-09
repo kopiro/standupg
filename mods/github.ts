@@ -1,6 +1,6 @@
 import { Octokit } from "@octokit/rest";
 import { PullsListResponseData } from "@octokit/types";
-import { todayStart, rnd } from ".";
+import { todayStart, rnd } from "../index";
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
@@ -10,14 +10,14 @@ const octokit = new Octokit({
 
 const getDescription = (pr: PullsListResponseData[0]) => {
   const body = pr.body
-    .split("### Checklist")[0]
-    .replace("### Description", "")
-    .replace(/\n/g, "")
+    .split("### Checklist")[0] // Get the part before Checklist
+    .replace("### Description", "") // Remove description
+    .replace(/\n/g, "") // Remove any EOF
     .trim();
   return body.length < 300 ? body : "check-out at";
 };
 
-const validLabels = ["stale", "draft", "do not merge", "do not review"];
+const validLabels = (process.env.GITHUB_VALID_LABELS || "").split(",");
 const getLabels = (pr: PullsListResponseData[0]) => {
   return pr.labels
     .filter((lbl) => validLabels.includes(lbl.name.toLowerCase()))

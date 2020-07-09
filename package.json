@@ -1,8 +1,9 @@
 {
   "name": "standupg",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.ts",
   "license": "MIT",
+  "author": "Flavio De Stefano <destefano.flavio@gmail.com>",
   "scripts": {
     "start": "ts-node index",
     "postinstall": "mkdir ~/.standupg && cp .env.example ~/.standupg/config"

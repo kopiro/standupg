@@ -2,11 +2,17 @@ import fastify from "fastify";
 import { google, calendar_v3 } from "googleapis";
 import fs from "fs";
 import path from "path";
-import { todayStart, todayEnd, tomorrowStart, tomorrowEnd } from "../index";
+import {
+  todayStart,
+  todayEnd,
+  tomorrowStart,
+  tomorrowEnd,
+  SDIR,
+} from "../utils";
 
 const PORT = 8080;
 const ROUTE = "/oauth_redirect";
-const secretFile = path.join(".secrets", "calendar.json");
+const secretFile = path.join(SDIR, "calendar.json");
 
 if (!fs.existsSync(secretFile)) {
   const oauth2Client = new google.auth.OAuth2(

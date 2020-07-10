@@ -1,12 +1,6 @@
 import { Octokit } from "@octokit/rest";
 import { PullsListResponseData } from "@octokit/types";
-import { todayStart, rnd } from "../index";
-
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
-  baseUrl: process.env.GITHUB_BASE,
-  log: null,
-});
+import { todayStart, rnd } from "../utils";
 
 const getDescription = (pr: PullsListResponseData[0]) => {
   const body = pr.body
@@ -60,6 +54,12 @@ const getState = (pr: PullsListResponseData[0]) => {
 };
 
 export async function main(): Promise<string> {
+  const octokit = new Octokit({
+    auth: process.env.GITHUB_TOKEN,
+    baseUrl: process.env.GITHUB_BASE,
+    log: null,
+  });
+
   const { data } = await octokit.pulls.list({
     owner: process.env.GITHUB_OWNER!,
     repo: process.env.GITHUB_REPO!,

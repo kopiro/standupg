@@ -1,6 +1,6 @@
 {
   "name": "standupg",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "index.ts",
   "license": "MIT",
   "author": "Flavio De Stefano <destefano.flavio@gmail.com>",

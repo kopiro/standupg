@@ -7,7 +7,7 @@
   "scripts": {
     "start": "ts-node ./src",
     "build": "tsc -p .",
-    "prepare": "npm build",
+    "prepare": "npm run build",
     "postinstall": "(mkdir -p ~/.standupg && cp -n .env.example ~/.standupg/config) || exit 0"
   },
   "files": [

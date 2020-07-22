@@ -4,7 +4,8 @@ import os from "os";
 
 export const SDIR = path.join(os.homedir(), ".standupg");
 
-export const now = moment();
+const _now = moment();
+export const now = _now.hours() > 15 ? _now.clone() : _now.clone().subtract(1, "day");
 
 export const todayStart = now.clone().startOf("day");
 export const todayEnd = now.clone().endOf("day");

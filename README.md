@@ -43,6 +43,7 @@ you should edit this before running the script the first time.
 | GOOGLE_EMAIL                 | your google email                                     | `null` |
 | CALENDAR_MAX_ATTENDEES_SHOWN | max number of attendes shown in the event description | 3      |
 | CALENDAR_ATTENDEES_ALIAS     | JSON object to use as attendees alias mapping         | `{}`   |
+| TEAM_EMAIL                   | Email of the team                                     | `null` |
 
 ### usage
 

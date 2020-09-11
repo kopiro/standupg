@@ -60,7 +60,7 @@ const attendeesAliases = process.env.CALENDAR_ATTENDEES_ALIAS
 
 const getAttendees = ({ attendees }: calendar_v3.Schema$Event) => {
   const filteredAttendees = (attendees || [])
-    .filter((att) => att.responseStatus === "accepted")
+    .filter((att) => att.responseStatus === "accepted" || att.email === process.env.TEAM_EMAIL)
     .filter((att) => att.email !== process.env.GOOGLE_EMAIL);
   return (
     filteredAttendees &&

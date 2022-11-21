@@ -20,7 +20,7 @@
   "dependencies": {
     "@octokit/rest": "^18.0.0",
     "dotenv": "^8.2.0",
-    "fastify": "^3.0.0",
+    "fastify": "^3.29.4",
     "googleapis": "^52.1.0",
     "moment": "^2.27.0"
   },
